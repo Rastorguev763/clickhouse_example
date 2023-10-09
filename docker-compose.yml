@@ -1,0 +1,25 @@
+version: '3'
+services:
+  clickhouse-server:
+    image: yandex/clickhouse-server
+    container_name: clickhouse-server
+    ports:
+      - "8123:8123" # HTTP интерфейс
+      - "9000:9000" # Native интерфейс
+    volumes:
+      - ./clickhouse_data:/var/lib/clickhouse
+      - ./clickhouse_config:/etc/clickhouse-server
+    environment:
+      - CLICKHOUSE_CONFIG=/etc/clickhouse-server/config.xml
+
+  clickhouse-client:
+    image: yandex/clickhouse-client
+    container_name: clickhouse-client
+    links:
+      - clickhouse-server
+    entrypoint: 
+      - /bin/sh -c "clickhouse-client -h clickhouse-server < /sql/create_table.sql"
+      - /bin/sh -c "clickhouse-client -h clickhouse-server < /sql/request.sql"
+    volumes:
+      - ./create_table.sql:/sql/create_table.sql
+      - ./request.sql:/sql/request.sql
